@@ -1,0 +1,392 @@
+<!-- 
+Game developed by: Dr Mahmoud Hesham 
+Date: 15-4-2025 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's in the Box?</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      background: linear-gradient(to right, #b2f0e4, #fef6d3);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #1c3f60;
+      font-size: 2.5em;
+    }
+
+    .difficulty-select {
+      margin: 20px 0;
+    }
+
+    .game-area {
+      display: none;
+    }
+
+    .boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .box {
+      background-color: white;
+      border: 3px solid #3498db;
+      padding: 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .box:hover {
+      transform: scale(1.05);
+      background-color: #e8f7ff;
+    }
+
+    .opened {
+      cursor: default;
+      background-color: #f0fdf4;
+      border-color: #2ecc71;
+    }
+
+    .info {
+      margin: 15px 0;
+      font-size: 18px;
+    }
+
+    input.answer-input, input#playerName {
+      width: 80%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button.submit-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button#restartGame {
+      margin-top: 15px;
+      padding: 7px 15px;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button {
+      margin-top: 15px;
+      padding: 7px 15px;
+      background-color: #2ecc71;
+      color: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    select {
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .feedback {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #e67e22;
+    }
+
+    .final-score {
+      font-size: 24px;
+      color: #1abc9c;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    img.clue-img {
+      width: 100px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+    }
+
+    .timer-bar-container {
+      width: 80%;
+      height: 20px;
+      background-color: #ddd;
+      border-radius: 10px;
+      margin: 10px auto 20px auto;
+      overflow: hidden;
+    }
+
+    .timer-bar {
+      height: 100%;
+      background-color: #f39c12;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .restart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    }
+
+    .restartGame {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background-color: #28c76f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    }
+
+    .restartGame:hover {
+    background-color: #20b463;
+    }
+  </style>
+</head>
+<body>
+  <h1>What's in the Box?</h1>
+
+  <div class="difficulty-select">
+    <label>Enter Your Name:
+      <input type="text" id="playerName" placeholder="Player name...">
+    </label><br><br>
+    <label>Select Difficulty:
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </label>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div class="game-area">
+    <div class="info">
+      <span><strong>Score:</strong> <span id="score">0</span></span>
+      &nbsp; | &nbsp;
+      <span><strong>Time Left:</strong> <span id="timer">0</span> sec</span>
+    </div>
+    <div class="timer-bar-container">
+      <div id="timerBar" class="timer-bar"></div>
+    </div>
+    <div id="finalScore" class="finalScore"></div>
+    <div class="boxes" id="boxes"></div>
+    <div class="restart-container">
+        <button id="restartGame" onclick="location.reload()" style="display:none">Play Again</button>
+    </div>
+    <!-- <button id="restartGame" onclick="location.reload()" style="display:none">Play Again</button> -->
+  </div>
+
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="Wrong.mp3"></audio>
+  <audio id="endSound" src="Final.mp3"></audio>
+
+  <script>
+    const products = [
+      { name: "STALEVO", clue: "Contains: Carbidopa , Levodopa & Entacapon", img: "" },
+      { name: "Parkinson", clue: "SIFROL Used for?", img: "photos/1.png" },
+      { name: "Amantadine", clue: "PK MERZ Active Ingredient is?", img: "photos/2.jpg" },
+      { name: "Alzheimer", clue: "EXELON Used for ...", img: "photos/3.jpg" },
+      { name: "Dementile", clue: "Contains: Donepezil", img: "" },
+      { name: "Alzheimer", clue: "REMINYL is Used for?", img: "photos/4.jpg" },
+      { name: "EBIXA", clue: "Drug used for Alzheimer as second line", img: "" },
+      { name: "Ginkgo", clue: "Supplement that is contraindicated in bleeding disorder", img: "" },
+      { name: "Depression", clue: "SEROXAT Used for ...", img: "photos/6.jpg" },
+      { name: "Yes", clue: "MIRZAGEN Calssified as Atypical Antidepressant? yes or no?", img: "photos/7.jpg" },
+      { name: "No", clue: "ANAFRANIL Can be used as OTC? yes or no?", img: "photos/8.jpg" },
+      { name: "Yes", clue: "ZYPREXA is an Atypical antipsychotic? yes or no?", img: "photos/11.jpg" },
+      { name: "NO", clue: "DOGMATIL is Only an antipsychotic drug i.e. has no other uses? yes or no?", img: "photos/12.jpg" },
+      { name: "Yes", clue: "EPANUTIN Contains Phenytoin? yes or no?", img: "photos/13.jpg" },
+      { name: "epilepsy", clue: "ALEVIO Used for?", img: "photos/14.jpg" },
+      { name: "No", clue: "GAPENTIN Only conc. 100mg is allowed as OTC", img: "photos/15.jpg" },
+      { name: "True", clue: "KEPPRA Used for epilepsy with unknown mechanism ... True or False?", img: "photos/17.png" },
+      { name: "True", clue: "I am enjoying Studying CNS ... True or False?", img: "" },
+      { name: "epilepsy", clue: "VALES Is used for ", img: "photos/19.jpg" },
+      { name: "Depression", clue: " PRESTIQ Is used for ...", img: "photos/20.jpg" }
+    ];
+
+    let score = 0;
+    let timeLeft = 0;
+    let maxTime = 0;
+    let pointPerCorrect = 1;
+    let timerInterval;
+    let totalAnswered = 0;
+    let totalProducts = products.length;
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+    const endSound = document.getElementById("endSound");
+
+    function startGame() {
+      const playerName = document.getElementById('playerName').value.trim();
+      if (!playerName) {
+        alert("Please enter your name to start.");
+        return;
+      }
+      score = 0;
+      totalAnswered = 0;
+      document.getElementById('score').innerText = score;
+      document.getElementById('finalScore').innerText = "";
+      document.getElementById('restartGame').style.display = 'none';
+
+      const difficulty = document.getElementById('difficulty').value;
+      switch (difficulty) {
+        case 'easy': timeLeft = maxTime = 190; pointPerCorrect = 1; break;
+        case 'medium': timeLeft = maxTime = 150; pointPerCorrect = 2; break;
+        case 'hard': timeLeft = maxTime = 90; pointPerCorrect = 3; break;
+      }
+
+      document.querySelector('.difficulty-select').style.display = 'none';
+      document.querySelector('.game-area').style.display = 'block';
+      document.getElementById('timer').innerText = timeLeft;
+      updateTimerBar();
+      loadBoxes();
+      startTimer();
+    }
+
+    function loadBoxes() {
+      const boxesContainer = document.getElementById('boxes');
+      boxesContainer.innerHTML = '';
+      const shuffled = [...products].sort(() => Math.random() - 0.5);
+
+      shuffled.forEach(product => {
+        const box = document.createElement('div');
+        box.className = 'box';
+        box.innerText = '❓';
+        box.onclick = () => revealBox(box, product);
+        boxesContainer.appendChild(box);
+      });
+    }
+
+    function revealBox(boxElement, product) {
+      if (boxElement.classList.contains('opened')) return;
+
+      boxElement.classList.add('opened');
+      boxElement.innerHTML = `
+        ${product.img ? `<img class="clue-img" src="${product.img}" alt="clue image" />` : ''}
+        <div><strong>Clue:</strong><br>${product.clue}</div>
+        <input class="answer-input" type="text" placeholder="Enter your answer" />
+        <br>
+        <button class="submit-btn">Submit</button>
+        <div class="feedback"></div>
+      `;
+
+      const input = boxElement.querySelector('input');
+      const feedback = boxElement.querySelector('.feedback');
+      const button = boxElement.querySelector('button');
+      input.focus();
+
+      input.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          button.click();
+        }
+      });
+
+      button.onclick = () => {
+        if (input.disabled) return;
+
+        const answer = input.value.trim();
+        if (answer.toLowerCase() === product.name.toLowerCase()) {
+          score += pointPerCorrect;
+          document.getElementById('score').innerText = score;
+          feedback.style.color = 'green';
+          feedback.innerText = 'Correct!';
+          correctSound.play();
+        } else {
+          feedback.style.color = '#e67e22';
+          feedback.innerText = `Incorrect. The correct answer was: ${product.name}`;
+          wrongSound.play();
+        }
+        input.disabled = true;
+        button.disabled = true;
+        totalAnswered++;
+
+        if (totalAnswered === totalProducts) {
+          clearInterval(timerInterval);
+          endGame();
+        }
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+        updateTimerBar();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function updateTimerBar() {
+      const percent = (timeLeft / maxTime) * 100;
+      document.getElementById('timerBar').style.width = percent + '%';
+    }
+
+    function endGame() {
+      endSound.play();
+      const playerName = document.getElementById('playerName').value.trim();
+      let performance;
+      if (score >= totalProducts * pointPerCorrect * 0.9) {
+        performance = '🌟 Excellent job!';
+      } else if (score >= totalProducts * pointPerCorrect * 0.6) {
+        performance = '👍 Good effort!';
+      } else {
+        performance = '✨ Keep practicing!';
+      }
+    //   alert(`🎉 Game Over, ${playerName}! Your total score is ${score}.\n${performance}.`);
+        console.log('finalScore:', document.querySelector('.finalScore'));
+        console.log('boxes-class:', document.querySelector('.boxes'));
+        console.log('boxes-id:', document.getElementById('boxes'));
+        console.log('timer:', document.getElementById('timer'));
+        console.log('restartGame:', document.querySelector('.restartGame'));
+      document.getElementById('finalScore').innerText = `🎉 Game Over, ${playerName}! Your total score is ${score}.\n${performance}`;
+      document.querySelector('.finalScore').style.display = 'block';
+      document.getElementById('boxes').style.setProperty('display', 'none', 'important');
+      document.getElementById('restartGame').style.display = 'block';
+      document.getElementById('timer').style.display = 'none';
+      //document.querySelector('.boxes').style.display = 'none';
+      // document.getElementById('boxes').style.display = 'none';
+      // document.querySelector('.restartGame').style.display = 'block';
+      // setTimeout(function() { location.reload(); }, 5000);
+      //document.getElementById('restartGame').style.display = 'inline-block';
+      //document.querySelector('.game-area').style.display = 'hidden';
+      //document.querySelector('.difficulty-select').style.display = 'block';
+      //document.querySelector('.game-area').style.display = 'none';
+      //boxesContainer.innerHTML = ''; // Clear boxes
+    }
+  </script>
+</body>
+</html>
