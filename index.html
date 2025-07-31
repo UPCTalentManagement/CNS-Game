@@ -264,8 +264,8 @@ Date: 15-4-2025
 
       const difficulty = document.getElementById('difficulty').value;
       switch (difficulty) {
-        case 'easy': timeLeft = maxTime = 190; pointPerCorrect = 1; break;
-        case 'medium': timeLeft = maxTime = 150; pointPerCorrect = 2; break;
+        case 'easy': timeLeft = maxTime = 270; pointPerCorrect = 1; break;
+        case 'medium': timeLeft = maxTime = 180; pointPerCorrect = 2; break;
         case 'hard': timeLeft = maxTime = 90; pointPerCorrect = 3; break;
       }
 
@@ -319,7 +319,7 @@ Date: 15-4-2025
         if (input.disabled) return;
 
         const answer = input.value.trim();
-        if (answer.toLowerCase() === product.name.toLowerCase()) {
+        if (answer.toLowerCase() === product.name.toLowerCase() || answer.toLowerCase() === product.name.toLowerCase()+" disease") {
           score += pointPerCorrect;
           document.getElementById('score').innerText = score;
           feedback.style.color = 'green';
@@ -391,6 +391,15 @@ Date: 15-4-2025
       //document.querySelector('.difficulty-select').style.display = 'block';
       //document.querySelector('.game-area').style.display = 'none';
       //boxesContainer.innerHTML = ''; // Clear boxes
+      sendToSheet(playerName, score);
+    }
+    function sendToSheet(name, score) {
+      fetch("https://script.google.com/macros/s/AKfycbz90r_JZQjUKDPhSVHLFj0CRuVUF1vVr9X9gu_J7-zalC-zfq242Mrxr39Z55prJ4d2Og/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score, date: new Date().toLocaleString() })
+      });
     }
   </script>
 </body>
